@@ -2,6 +2,7 @@
 #include "EventLoopThread.h"
 #include "EventLoop.h"
 #include <memory>
+#include <string>
 EventLoopThreadPool::EventLoopThreadPool(EventLoop *baseLoop, const std::string &nameArg):
     baseLoop_(baseLoop),
     name_(nameArg),
@@ -21,9 +22,8 @@ void EventLoopThreadPool::start(const ThreadInitCallback &cb)
     started_=true;
     for(int i=0;i<numThreads_;i++)
     {
-        char buf[name_.size()+32];
-        snprintf(buf,sizeof buf,"%s%d",name_.c_str(),i);
-        EventLoopThread* t=new EventLoopThread(cb,buf);
+        std::string threadName=name_+std::to_string(i);
+        EventLoopThread* t=new EventLoopThread(cb,threadName);
         threads_.push_back(std::unique_ptr<EventLoopThread>(t));
         loops_.push_back(t->startLoop());
     }

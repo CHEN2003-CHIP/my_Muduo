@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <string>
 using namespace std;
 using namespace placeholders;
 static EventLoop* CHECK_NOTNULL(EventLoop* loop)
@@ -125,14 +126,30 @@ void TcpConnection::send(const std::string & buf)
     {
         if(loop_->isInLoopThread())
         {
-            sendInLoop(buf.c_str(),buf.size());
+            sendInLoop(buf);
 
         }
         else{
-            loop_->runInLoop(std::bind(&TcpConnection::sendInLoop,this,buf.c_str(),buf.size()));
+            loop_->runInLoop(std::bind(static_cast<void (TcpConnection::*)(const std::string&)>(&TcpConnection::sendInLoop),
+                                       shared_from_this(),
+                                       buf));
 
         }
     }
+}
+
+void TcpConnection::send(const void* message,int len)
+{
+    if(message == nullptr || len <= 0)
+    {
+        return;
+    }
+    send(std::string(static_cast<const char*>(message),len));
+}
+
+void TcpConnection::sendInLoop(const std::string& message)
+{
+    sendInLoop(message.data(),message.size());
 }
 
 void TcpConnection::sendInLoop(const void* data,size_t len)

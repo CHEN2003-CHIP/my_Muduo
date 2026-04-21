@@ -10,7 +10,7 @@ class EventLoop;
 class Acceptor:noncopyable
 {
 public:
-    using NewConnectionCallback=function<void(int sockfd,const InetAddress&)>;
+    using NewConnectionCallback=std::function<void(int sockfd,const InetAddress&)>;
 
     Acceptor(EventLoop* loop,const InetAddress& listenAddr,bool reuseport);
     ~Acceptor();
